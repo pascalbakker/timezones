@@ -3,7 +3,7 @@ A simple timezone program to get time in a given region. Works with daylight sav
 Installation
 
 ```
-mkdir build && cd $ && cmake --build .
+mkdir build && cd $_ && cmake --build .
 ```
 
 Example 
