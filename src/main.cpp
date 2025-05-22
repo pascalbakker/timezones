@@ -102,6 +102,7 @@ void process_zoned_time(
 static command_args convert_user_input_to_config(int argc, char *argv[]) {
     command_args config;
     int opt;
+    std::vector<std::string> output_timezones;
     while ((opt = getopt(argc, argv, "cli:t:o:v")) != -1) {
         switch (opt) {
         case 'c':
@@ -115,7 +116,7 @@ static command_args convert_user_input_to_config(int argc, char *argv[]) {
             std::cout << "\nTime given: " << config.input_time;
             break;
         case 'o':
-            config.output_zones.push_back(optarg);
+            output_timezones.push_back(optarg);
             break;
         case 't':
             config.input_timezone = optarg;
@@ -135,6 +136,11 @@ static command_args convert_user_input_to_config(int argc, char *argv[]) {
     for (int i = optind; i < argc; ++i) {
         std::cerr << "Unexpected argument: " << argv[i] << '\n';
     }
+
+    if (config.output_zones.empty()) {
+        config.output_zones.push_back("UTC");
+    }
+    config.output_zones = output_timezones;
     std::cout << "\n";
     return config;
 }
@@ -144,7 +150,7 @@ static void print_utc_into_given_zones(
     std::vector<std::string> time_zone_list) {
     print_table_header();
     for (const std::string &time_zone_str : time_zone_list) {
-        const time_zone *time_zone = locate_zone(time_zone_str);
+        const time_zone *time_zone = std::chrono::locate_zone(time_zone_str);
         const auto current_time_converted =
             zoned_time(time_zone, utc_time_point);
         process_zoned_time(time_zone_str, current_time_converted);
@@ -156,7 +162,7 @@ static void convert_current_time_to_all_zones() {
     const auto now_in_seconds = time_point_cast<seconds>(current_time);
     print_table_header();
     for (const auto &time_zone_str : important_time_zones_vec) {
-        const auto time_zone = locate_zone(time_zone_str);
+        const auto time_zone = std::chrono::locate_zone(time_zone_str);
         const auto current_time_converted =
             zoned_time(time_zone, now_in_seconds);
         process_zoned_time(time_zone_str, current_time_converted);
@@ -172,18 +178,22 @@ static void convert_time_zone_with_confg(const command_args &command_args) {
     const time_point custom_time = iso_to_utc_time_point(custom_time_str);
 
     std::smatch match;
-    if (std::regex_search(custom_time_str, match, tz_regex)) {
+    if ('z' == std::tolower(command_args.input_time.back())) {
+        // If input timezone ends with z assume it is UTC format
+        // Then convert to the given output format
+        std::istringstream ss{command_args.input_time};
+        std::chrono::system_clock::time_point tp;
+        ss >> std::chrono::parse("%Y-%m-%dT%H:%M:%SZ", tp);
+        std::vector time_zones_to_print = command_args.output_zones;
+        std::chrono::system_clock::time_point utc_time =
+            iso_to_utc_time_point(command_args.input_time);
+        // time_zones_to_print.push_back(command_args.input_time);
+        print_utc_into_given_zones(tp, command_args.output_zones);
+    } else if (std::regex_search(custom_time_str, match, tz_regex)) {
         // Timezone is included in [+-]xx:xx format
         const auto input_timestamp_with_tz = command_args.input_time;
         const time_point custom_time = time_point_cast<seconds>(
             iso_to_utc_time_point(input_timestamp_with_tz));
-        print_utc_into_given_zones(custom_time, command_args.output_zones);
-    } else if ('z' == std::tolower(command_args.input_time.back())) {
-        // Timezone is UTC
-        std::cout << "Timezone given in UTC format";
-        std::istringstream ss{command_args.input_time};
-        std::chrono::system_clock::time_point tp;
-        ss >> std::chrono::parse("%Y-%m-%dT%H:%M:%SZ", tp);
         print_utc_into_given_zones(custom_time, command_args.output_zones);
     } else if (!command_args.input_timezone.empty()) {
         // Timezone given in '-t' param
