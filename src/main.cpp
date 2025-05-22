@@ -112,13 +112,14 @@ static command_args convert_user_input_to_config(int argc, char *argv[]) {
             break;
         case 'i':
             config.input_time = optarg;
-            std::cout << config.input_time;
+            std::cout << "\nTime given: " << config.input_time;
             break;
         case 'o':
             config.output_zones.push_back(optarg);
             break;
         case 't':
             config.input_timezone = optarg;
+            std::cout << "\nTimezone given: " << config.input_timezone;
             break;
         case 'v':
             break; // handle if needed
@@ -134,7 +135,7 @@ static command_args convert_user_input_to_config(int argc, char *argv[]) {
     for (int i = optind; i < argc; ++i) {
         std::cerr << "Unexpected argument: " << argv[i] << '\n';
     }
-
+    std::cout << "\n";
     return config;
 }
 
@@ -179,6 +180,7 @@ static void convert_time_zone_with_confg(const command_args &command_args) {
         print_utc_into_given_zones(custom_time, command_args.output_zones);
     } else if ('z' == std::tolower(command_args.input_time.back())) {
         // Timezone is UTC
+        std::cout << "Timezone given in UTC format";
         std::istringstream ss{command_args.input_time};
         std::chrono::system_clock::time_point tp;
         ss >> std::chrono::parse("%Y-%m-%dT%H:%M:%SZ", tp);
@@ -208,5 +210,6 @@ int main(int argc, char *argv[]) {
     } else {
         const command_args user_input_args =
             convert_user_input_to_config(argc, argv);
+        convert_time_zone_with_confg(user_input_args);
     }
 }
