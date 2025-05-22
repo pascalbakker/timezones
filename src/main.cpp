@@ -31,8 +31,8 @@ struct command_args {
     std::string input_timezone = "local";
 };
 
-static auto iso_to_utc_time_point(const std::string_view &str)
-    -> std::chrono::system_clock::time_point {
+static std::chrono::system_clock::time_point
+iso_to_utc_time_point(const std::string_view &str) {
     std::istringstream ss{std::string{str}};
     std::chrono::system_clock::time_point tp;
     // ss >> std::chrono::parse("%FT%TZ", tp);
@@ -40,7 +40,7 @@ static auto iso_to_utc_time_point(const std::string_view &str)
     return tp;
 }
 
-static auto format_hour(int hour) -> std::string {
+static std::string format_hour(int hour) {
     std::ostringstream oss;
     // If hour is less than 10, prepend 0
     if (hour < 10) {
@@ -51,16 +51,16 @@ static auto format_hour(int hour) -> std::string {
     return oss.str();
 }
 
-static auto convert_hours_to_string(int hours) {
+static std::string convert_hours_to_string(int hours) {
     return std::string(hours < 0 ? "-" : "+") +
-           std::string(hours < 10 ? "0" : "") + std::to_sZONEtring(abs(hours));
+           std::string(hours < 10 ? "0" : "") + std::to_string(abs(hours));
 }
 
-static auto convert_minutes_to_string(int minutes) {
+static std::string convert_minutes_to_string(int minutes) {
     return std::string(minutes < 10 ? "0" : "") + std::to_string(abs(minutes));
 }
 
-static auto get_offset_for_timezone(const std::string &tz_name) -> std::string {
+static std::string get_offset_for_timezone(const std::string &tz_name) {
     try {
         auto zone = std::chrono::locate_zone(tz_name);
         auto now = std::chrono::system_clock::now();
