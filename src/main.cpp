@@ -15,7 +15,7 @@ using namespace std::chrono_literals;
 const std::string UTC_TIMEZONE = "UTC";
 
 const std::vector<std::string> important_time_zones_vec = {
-    UTC_TIME,           "America/New_York", "America/Los_Angeles",
+    UTC_TIMEZONE,       "America/New_York", "America/Los_Angeles",
     "Europe/London",    "Europe/Amsterdam", "Asia/Kolkata",
     "Asia/Shanghai",    "Australia/Sydney", "Asia/Tokyo",
     "America/Sao_Paulo"};
@@ -196,17 +196,32 @@ static bool does_timezone_end_in_z(const command_args &command_args) {
            'z' == std::tolower(command_args.input_time.back());
 }
 
+static void
+convert_time_zone_with_given_input_timezone(const command_args &command_args) {
+    // If timezone is not 'z' but -t zone is given
+    std::string offset_with_given_input_zone =
+        get_offset_for_timezone(command_args.input_timezone);
+    const auto time_zone_string_with_offset =
+        std::string(command_args.input_time) +
+        std::string(offset_with_given_input_zone);
+    const time_point time_with_custom_timezone_time_point =
+        iso_to_utc_time_point(time_zone_string_with_offset);
+    print_utc_into_given_zones(time_with_custom_timezone_time_point,
+                               command_args.output_zones);
+}
+
 static void convert_time_zone_with_config(const command_args &command_args) {
     std::regex tz_regex(R"([+-]\d{2}:\d{2}$)");
     std::smatch match;
     if (command_args.l_flag) {
         // If -l dispaly list of predefined zones
         convert_current_time_to_all_zones();
-    }
-    if (does_timezone_end_in_z(command_args)) {
+    } else if (does_timezone_end_in_z(command_args)) {
         // If input timezone ends with z assume it is UTC format
         // Then convert to the given output format
         print_timezone_with_utc_zone_as_input(command_args);
+    } else if (!command_args.input_timezone.empty()) {
+        convert_time_zone_with_given_input_timezone(command_args);
     } else if (std::regex_search(command_args.input_time, match, tz_regex)) {
         // If timezone is included in [+-]xx:xx format
         // Then just convert to time_point
