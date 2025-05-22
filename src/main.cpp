@@ -12,16 +12,12 @@
 using namespace std::chrono;
 using namespace std::chrono_literals;
 
+const std::string UTC_TIMEZONE = "UTC";
+
 const std::vector<std::string> important_time_zones_vec = {
-    "UTC",
-    "America/New_York",
-    "America/Los_Angeles",
-    "Europe/London",
-    "Europe/Amsterdam",
-    "Asia/Kolkata",
-    "Asia/Shanghai",
-    "Australia/Sydney",
-    "Asia/Tokyo",
+    UTC_TIME,           "America/New_York", "America/Los_Angeles",
+    "Europe/London",    "Europe/Amsterdam", "Asia/Kolkata",
+    "Asia/Shanghai",    "Australia/Sydney", "Asia/Tokyo",
     "America/Sao_Paulo"};
 
 struct command_args {
@@ -30,7 +26,7 @@ struct command_args {
     // '-i' Input timestamp in ISO format
     std::string input_time;
     // '-o' Timezone to convert to. Default is UTC
-    std::vector<std::string> output_zones = {"UTC"};
+    std::vector<std::string> output_zones = {UTC_TIMEZONE};
     // '-t' Timezone used for converting. Default is local
     std::string input_timezone = "local";
 };
@@ -57,7 +53,7 @@ static auto format_hour(int hour) -> std::string {
 
 static auto convert_hours_to_string(int hours) {
     return std::string(hours < 0 ? "-" : "+") +
-           std::string(hours < 10 ? "0" : "") + std::to_string(abs(hours));
+           std::string(hours < 10 ? "0" : "") + std::to_sZONEtring(abs(hours));
 }
 
 static auto convert_minutes_to_string(int minutes) {
@@ -128,7 +124,7 @@ static command_args convert_user_input_to_config(int argc, char *argv[]) {
     }
 
     if (config.output_zones.empty()) {
-        config.output_zones.push_back("UTC");
+        config.output_zones.push_back(UTC_TIMEZONE);
     }
     config.output_zones = output_timezones;
     return config;
@@ -160,7 +156,7 @@ static void convert_current_time_to_all_zones() {
 
 static std::string
 get_timezone_based_on_input(const std::string &input_timezone) {
-    return input_timezone.empty() ? "UTC"
+    return input_timezone.empty() ? UTC_TIMEZONE
                                   : get_offset_for_timezone(input_timezone);
 }
 
