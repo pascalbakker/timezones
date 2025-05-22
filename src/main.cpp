@@ -6,6 +6,7 @@
 #include <iostream>
 #include <regex>
 #include <string>
+#include <unistd.h>
 #include <vector>
 
 using namespace std::chrono;
@@ -100,9 +101,8 @@ void process_zoned_time(
 
 static command_args convert_user_input_to_config(int argc, char *argv[]) {
     command_args config;
-
     int opt;
-    while ((opt = getopt(argc, argv, "ct:v")) != -1) {
+    while ((opt = getopt(argc, argv, "cli:t:o:v")) != -1) {
         switch (opt) {
         case 'c':
             config.c_flag = true;
@@ -112,6 +112,7 @@ static command_args convert_user_input_to_config(int argc, char *argv[]) {
             break;
         case 'i':
             config.input_time = optarg;
+            std::cout << config.input_time;
             break;
         case 'o':
             config.output_zones.push_back(optarg);
@@ -119,11 +120,21 @@ static command_args convert_user_input_to_config(int argc, char *argv[]) {
         case 't':
             config.input_timezone = optarg;
             break;
+        case 'v':
+            break; // handle if needed
+        case '?':
         default:
-            std::cerr << "Argument: " << opt << " not recognized.";
-            return config;
+            std::cerr << "Invalid option: -" << static_cast<char>(optopt)
+                      << '\n';
+            exit(EXIT_FAILURE);
         }
     }
+
+    // Catch extra arguments
+    for (int i = optind; i < argc; ++i) {
+        std::cerr << "Unexpected argument: " << argv[i] << '\n';
+    }
+
     return config;
 }
 
@@ -183,6 +194,7 @@ static void convert_time_zone_with_confg(const command_args &command_args) {
         print_utc_into_given_zones(custom_time, command_args.output_zones);
     } else {
         // Default to UTC timezone
+        std::cout << command_args.input_time;
         time_point tp = iso_to_utc_time_point(command_args.input_time);
         print_utc_into_given_zones(custom_time, command_args.output_zones);
     }
@@ -190,6 +202,8 @@ static void convert_time_zone_with_confg(const command_args &command_args) {
 
 int main(int argc, char *argv[]) {
     if (argc == 1) {
+        // If no args passed, just display a list of timezones
+        // of the current time
         convert_current_time_to_all_zones();
     } else {
         const command_args user_input_args =
