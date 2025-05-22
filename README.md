@@ -6,7 +6,7 @@ Installation
 mkdir build && cd $_ && cmake .. && cmake --build .
 ```
 
-Example 
+To list timezones at the current time in different regions (can also use -l flag)
 
 ```
 ./Timezones
@@ -25,4 +25,15 @@ AEDT      Australia/Sydney              2025-03-31T14:21:43
 JST       Asia/Tokyo                    2025-03-31T12:21:43
 -03       America/Sao_Paulo             2025-03-31T00:21:43
 
+```
+
+To pass a custom timezone and time:
+```
+./Timezones -i "2025-05-22T09:17:26" -t "America/New_York"
+```
+
+To pass a custom timezone and custom output timezones
+
+```
+./Timezones -i "2025-05-22T09:17:26" -t "America/New_York" -o "Europe/Amsterdam" -o "Europe/London" 
 ```
