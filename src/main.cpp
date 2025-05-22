@@ -189,7 +189,19 @@ static void convert_time_zone_with_confg(const command_args &command_args) {
             iso_to_utc_time_point(command_args.input_time);
         // time_zones_to_print.push_back(command_args.input_time);
         print_utc_into_given_zones(tp, command_args.output_zones);
-    } else if (std::regex_search(custom_time_str, match, tz_regex)) {
+    } else if (!command_args.input_timezone.empty()) {
+        // If timezone is not 'z' but -t zone is given
+        std::string offset_with_given_input_zone =
+            get_offset_for_timezone(command_args.input_timezone);
+        const auto time_zone_string_with_offset =
+            std::string(command_args.input_time) + std::string(offset);
+        const time_point time_with_custom_timezone_time_point =
+            iso_to_utc_time_point(time_zone_string_with_offset);
+        print_utc_into_given_zones(time_with_custom_timezone_time_point,
+                                   command_args.output_zones);
+    }
+
+    else if (std::regex_search(custom_time_str, match, tz_regex)) {
         // Timezone is included in [+-]xx:xx format
         const auto input_timestamp_with_tz = command_args.input_time;
         const time_point custom_time = time_point_cast<seconds>(
