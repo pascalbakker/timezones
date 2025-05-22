@@ -221,6 +221,9 @@ static void convert_time_zone_with_config(const command_args &command_args) {
         // Then convert to the given output format
         print_timezone_with_utc_zone_as_input(command_args);
     } else if (!command_args.input_timezone.empty()) {
+        // If timezone not z and -t given,
+        // then add offset to input timezone
+        // before converting to the other timezones
         convert_time_zone_with_given_input_timezone(command_args);
     } else if (std::regex_search(command_args.input_time, match, tz_regex)) {
         // If timezone is included in [+-]xx:xx format
