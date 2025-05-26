@@ -133,7 +133,8 @@ static void print_a_list_of_timezones(
     print_table_header();
     for (const std::string &time_zone_str : time_zone_list) {
         const time_zone *time_zone = std::chrono::locate_zone(time_zone_str);
-        const auto current_time_converted = zoned_time(time_zone, time_point);
+        const auto current_time_converted =
+            std::chrono::zoned_time(time_zone, time_point);
         process_zoned_time(time_zone_str, current_time_converted);
     }
 }
